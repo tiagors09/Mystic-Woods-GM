@@ -1,2 +1,2 @@
-check_movement();
-check_state();
+check_input();
+update_state();
