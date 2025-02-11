@@ -4,4 +4,4 @@ if (
     or current_state == States.ATTACK_LEFT
     or current_state == States.ATTACK_RIGHT
 )
-    attacking = false;
+    attack = false;

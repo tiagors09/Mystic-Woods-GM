@@ -22,9 +22,10 @@ enum Directions {
 
 
 direction = Directions.DOWN;
+
 is_moving = false;
 current_state = States.IDLE_FRONT;
-attacking = false;
+attack = false;
 
 idle_front = function () {
     speed = 0;
@@ -141,9 +142,12 @@ check_input = function () {
     var _left = keyboard_check(ord("A")) or keyboard_check(vk_left);
     
     var _attack = (
-        keyboard_check(ord("Z")) 
+        keyboard_check_pressed(ord("Z")) 
         or mouse_check_button_pressed(mb_left)
     ) ;
+    
+    if (_attack and not attack)
+        attack = true;
     
     is_moving = _up or _right or _down or _left;
     
@@ -159,11 +163,11 @@ check_input = function () {
     if (_left) 
         current_state = States.RUN_LEFT; 
     
-    if (not is_moving and not attacking)
-        update_idle_state();
-    
-    if (not is_moving and not attacking and _attack)
+    if (not is_moving and attack) 
         update_attack_state();
+        
+    if (not is_moving and not attack)     
+        update_idle_state();
 }
 
 update_state = function () {
