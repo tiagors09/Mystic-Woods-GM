@@ -1,7 +1,9 @@
 if (
-    current_state == States.ATTACK_BACK 
-    or current_state == States.ATTACK_FRONT 
-    or current_state == States.ATTACK_LEFT
-    or current_state == States.ATTACK_RIGHT
+    current_state == attack_back 
+    or current_state == attack_front 
+    or current_state == attack_left
+    or current_state == attack_right
 )
-    attack = false;
+    attacking = false;
+else if (current_state == die)
+    image_index = sprite_get_number(spr_player_death) - 1;

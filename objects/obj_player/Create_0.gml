@@ -1,3 +1,5 @@
+MAX_PLAYER_LIFE = 1;
+
 enum States {
     IDLE_FRONT,
     IDLE_BACK,
@@ -11,6 +13,7 @@ enum States {
     ATTACK_BACK,
     ATTACK_LEFT,
     ATTACK_RIGHT,
+    DIE,
 };
 
 enum Directions {
@@ -20,30 +23,31 @@ enum Directions {
     DOWN = 270,
 }
 
-
-direction = Directions.DOWN;
-
-is_moving = false;
-current_state = States.IDLE_FRONT;
-attack = false;
+is_alive = true;
+player_lives = MAX_PLAYER_LIFE;
+attacking = false;
 
 idle_front = function () {
+    direction = Directions.DOWN;
     speed = 0;
     sprite_index = spr_player_idle_front;
 }
 
 idle_right = function () {
+    direction = Directions.RIGHT;
     speed = 0;
     image_xscale = 1;
     sprite_index = spr_player_idle_right;
 }
 
 idle_back = function () {
+    direction = Directions.UP;
     speed = 0;
     sprite_index = spr_player_idle_back;
 }
 
 idle_left = function () {
+    direction = Directions.LEFT;
     speed = 0;
     image_xscale = -1;
     sprite_index = spr_player_idle_right;
@@ -76,44 +80,47 @@ run_left = function () {
 }
 
 attack_front = function () {
-    attacking = true;
     speed = 0;
     sprite_index = spr_player_attack_front;
 }
 
 attack_left = function () {
-    attacking = true;
     speed = 0;
     image_xscale = -1;
     sprite_index = spr_player_attack_right;
 }
 
 attack_right = function () {
-    attacking = true;
     speed = 0;
     image_xscale = 1;
     sprite_index = spr_player_attack_right;
 }
 
 attack_back = function () {
-    attacking = true;
     speed = 0;
     sprite_index = spr_player_attack_back;
 }
 
+die = function () {
+    speed = 0;
+    sprite_index = spr_player_death;
+}
+
+current_state = idle_front;
+
 update_idle_state = function () {
     switch (direction) {
         case Directions.UP:
-            current_state = States.IDLE_BACK;
+            current_state = idle_back;
             break;
         case Directions.RIGHT:
-            current_state = States.IDLE_RIGHT;
+            current_state = idle_right;
             break;
         case Directions.DOWN:
-            current_state = States.IDLE_FRONT;
+            current_state = idle_front;
             break;
         case Directions.LEFT:
-            current_state = States.IDLE_LEFT;
+            current_state = idle_left;
             break;
     }
 }
@@ -121,16 +128,16 @@ update_idle_state = function () {
 update_attack_state = function () {
     switch (direction) {
         case Directions.UP:
-            current_state = States.ATTACK_BACK;
+            current_state = attack_back;
             break;
         case Directions.RIGHT:
-            current_state = States.ATTACK_RIGHT;
+            current_state = attack_right;
             break;
         case Directions.DOWN:
-            current_state = States.ATTACK_FRONT;
+            current_state = attack_front;
             break;
         case Directions.LEFT:
-            current_state = States.ATTACK_LEFT;
+            current_state = attack_left;
             break;
     }
 }
@@ -140,75 +147,37 @@ check_input = function () {
     var _right = keyboard_check(ord("D")) or keyboard_check(vk_right);
     var _down = keyboard_check(ord("S")) or keyboard_check(vk_down);
     var _left = keyboard_check(ord("A")) or keyboard_check(vk_left);
-    
+        
     var _attack = (
         keyboard_check_pressed(ord("Z")) 
-        or mouse_check_button_pressed(mb_left)
+        or keyboard_check_pressed(ord("K"))
     ) ;
     
-    if (_attack and not attack)
-        attack = true;
+    var _is_moving = _up or _right or _down or _left;
     
-    is_moving = _up or _right or _down or _left;
-    
-    if (_up) 
-        current_state = States.RUN_BACK;
-    
-    if(_right) 
-        current_state = States.RUN_RIGHT;
-    
-    if(_down) 
-        current_state = States.RUN_FRONT;
-    
-    if (_left) 
-        current_state = States.RUN_LEFT; 
-    
-    if (not is_moving and attack) 
-        update_attack_state();
-        
-    if (not is_moving and not attack)     
+    if (is_alive and not attacking and not _is_moving)
         update_idle_state();
-}
-
-update_state = function () {
-    switch (current_state) {
-        case States.IDLE_FRONT:
-            idle_front();
-            break;
-        case States.IDLE_BACK:
-            idle_back();
-            break;
-        case States.IDLE_LEFT:
-            idle_left();
-            break;
-        case States.IDLE_RIGHT:
-            idle_right();
-            break;
-        case States.RUN_FRONT:
-            run_front();
-            break;
-        case States.RUN_BACK:
-            run_back();
-            break;
-        case States.RUN_LEFT:
-            run_left();
-            break;
-        case States.RUN_RIGHT:
-            run_right();
-            break;
-        case States.ATTACK_FRONT:
-            attack_front();
-            break;
-        case States.ATTACK_BACK:
-            attack_back();
-            break;
-        case States.ATTACK_LEFT:
-            attack_left();
-            break;
-        case States.ATTACK_RIGHT:
-            attack_right();
-            break;
-        default:
-            break;
+    
+    if (is_alive and not attacking and _is_moving) {
+        if (_up) 
+            current_state = run_back;
+        else if(_left) 
+            current_state = run_left;
+        else if (_down) 
+            current_state = run_front;
+        else if(_right) 
+            current_state = run_right;
     }
+    
+    if (is_alive and _attack and not attacking and not _is_moving)
+        attacking = true;
+    
+    if (is_alive and attacking)
+        update_attack_state();
+    
+    if (player_lives <= 0)
+        is_alive = false;
+    
+    if (not is_alive)
+        current_state = die;
 }
