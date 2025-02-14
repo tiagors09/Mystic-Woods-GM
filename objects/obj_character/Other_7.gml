@@ -6,4 +6,4 @@ if (
 )
     attacking = false;
 else if (current_state == die)
-    image_index = sprite_get_number(spr_player_death) - 1;
+    image_index = sprite_get_number(spr_death) - 1;
